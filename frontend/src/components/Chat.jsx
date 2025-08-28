@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
+import axios from 'axios';
 
 const Chat = () => {
   const [messages, setMessages] = useState([
@@ -25,6 +26,19 @@ const Chat = () => {
     };
     
     setMessages(prev => [...prev, newMessage]);
+
+    axios.post('http://localhost:3000/newUserMessage', { message: messageText })
+    .then(response => {
+      const botResponse = {
+        id: Date.now() + 1,
+        text: response.data.message,
+        isUser: false
+      };
+      setMessages(prev => [...prev, botResponse]);
+    })
+    .catch(error => {
+      console.error('Error sending message:', error);
+    });
     
     // sample bot response, TODO: replace with actual bot response
     setTimeout(() => {
