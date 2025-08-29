@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
-const ChatInput = ({ onSendMessage }) => {
+const ChatInput = ({ onSendMessage, disabled = false }) => {
   const [message, setMessage] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (message.trim()) {
+    if (message.trim() && !disabled) {
       onSendMessage(message);
       setMessage('');
     }
@@ -25,11 +25,16 @@ const ChatInput = ({ onSendMessage }) => {
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyPress={handleKeyPress}
-        placeholder="Type your message..."
+        placeholder={disabled ? "Please wait..." : "Type your message..."}
         className="message-input"
+        disabled={disabled}
       />
-      <button type="submit" className="send-button" disabled={!message.trim()}>
-        Send
+      <button 
+        type="submit" 
+        className="send-button" 
+        disabled={!message.trim() || disabled}
+      >
+        {disabled ? 'Sending...' : 'Send'}
       </button>
     </form>
   );

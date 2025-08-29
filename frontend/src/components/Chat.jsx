@@ -2,12 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
 const Chat = () => {
   const [messages, setMessages] = useState([
     // sample message, TODO: replace with actual message
     { id: 1, text: 'Hello! How can I help you today?', isUser: false }
   ]);
+  const [sessionId, setSessionId] = useState(() => uuidv4()); // Generate sessionId on component mount
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -18,7 +21,7 @@ const Chat = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = (messageText) => {
+  const handleSendMessage = async (messageText) => {
     const newMessage = {
       id: Date.now(),
       text: messageText,
@@ -26,35 +29,40 @@ const Chat = () => {
     };
     
     setMessages(prev => [...prev, newMessage]);
+    setIsLoading(true);
 
-    axios.post('http://localhost:3000/newUserMessage', { message: messageText })
-    .then(response => {
+    try {
+      const response = await axios.post('http://localhost:3000/chat', { 
+        message: messageText,
+        sessionId: sessionId // Send the sessionId with each message
+      });
+      
       const botResponse = {
         id: Date.now() + 1,
         text: response.data.message,
         isUser: false
       };
       setMessages(prev => [...prev, botResponse]);
-    })
-    .catch(error => {
+    } catch (error) {
       console.error('Error sending message:', error);
-    });
-    
-    // sample bot response, TODO: replace with actual bot response
-    setTimeout(() => {
-      const botResponse = {
+      const errorResponse = {
         id: Date.now() + 1,
-        text: `I received your message: "${messageText}". This is a simple chat interface!`,
+        text: 'Sorry, I encountered an error. Please try again.',
         isUser: false
       };
-      setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  
 
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <h2>Chat</h2>
+        <h2>Travel Assistant</h2>
+
       </div>
       
       <div className="chat-messages">
@@ -65,10 +73,15 @@ const Chat = () => {
             isUser={message.isUser}
           />
         ))}
+        {isLoading && (
+          <div className="loading-message" style={{ textAlign: 'center', padding: '10px', color: '#666' }}>
+            Travel Assistant is thinking...
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       
-      <ChatInput onSendMessage={handleSendMessage} />
+      <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
     </div>
   );
 };

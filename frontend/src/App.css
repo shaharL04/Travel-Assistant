@@ -1,6 +1,7 @@
 /* App container */
 .app {
   height: 100vh;
+  width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -105,6 +106,55 @@
   font-size: 14px;
   line-height: 1.4;
   margin-bottom: 4px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Basic markdown formatting for travel responses */
+.bot-message .message-text h1,
+.bot-message .message-text h2,
+.bot-message .message-text h3 {
+  margin: 8px 0 4px 0;
+  font-weight: 600;
+  color: #2c3e50;
+  display: block;
+}
+
+.bot-message .message-text h1 {
+  font-size: 18px;
+  border-bottom: 1px solid #667eea;
+  padding-bottom: 2px;
+}
+
+.bot-message .message-text h2 {
+  font-size: 16px;
+  color: #667eea;
+}
+
+.bot-message .message-text h3 {
+  font-size: 15px;
+}
+
+.bot-message .message-text strong {
+  font-weight: 600;
+  color: #27ae60;
+}
+
+.bot-message .message-text ul {
+  margin: 4px 0;
+  padding-left: 16px;
+  list-style-type: disc;
+}
+
+.bot-message .message-text li {
+  margin: 2px 0;
+  line-height: 1.4;
+  display: list-item;
+}
+
+.bot-message .message-text br {
+  display: block;
+  margin: 2px 0;
 }
 
 .message-time {
