@@ -12,7 +12,7 @@ class LLMService {
         this.apiKey = process.env.GEMINI_API_KEY;
     }
 
-    // LLM-based message classification
+    // LLM-based message classification and destination extraction
     async classifyUserMessage(userMessage, context = []) {
         try {
             console.log(`[CLASSIFICATION] Starting LLM-based classification for message: "${userMessage.substring(0, 50)}${userMessage.length > 50 ? '...' : ''}"`);
@@ -22,26 +22,38 @@ class LLMService {
             console.log(`[CLASSIFICATION] Classification prompt length: ${classificationPrompt.length} characters`);
             
             const response = await this.callLLM(classificationPrompt);
-            const category = response.trim().toLowerCase();
+            const responseText = response.trim();
             
-            console.log(`[CLASSIFICATION] LLM raw response: "${response.trim()}"`);
-            console.log(`[CLASSIFICATION] Extracted category: "${category}"`);
+            console.log(`[CLASSIFICATION] LLM raw response: "${responseText}"`);
             
-            // Validate the classification
-            const validCategories = ['destination', 'planning', 'itinerary', 'packing', 'general'];
-            if (validCategories.includes(category)) {
-                console.log(`[CLASSIFICATION] Valid classification: "${category}"`);
-                return category;
+            // Parse the response format: "category|destination"
+            const parts = responseText.split('|');
+            if (parts.length === 2) {
+                const category = parts[0].trim().toLowerCase();
+                const destination = parts[1].trim();
+                
+                console.log(`[CLASSIFICATION] Extracted category: "${category}"`);
+                console.log(`[CLASSIFICATION] Extracted destination: "${destination}"`);
+                
+                // Validate the classification
+                const validCategories = ['destination', 'planning', 'itinerary', 'packing', 'general'];
+                if (validCategories.includes(category)) {
+                    console.log(`[CLASSIFICATION] Valid classification: "${category}" with destination: "${destination}"`);
+                    return { category, destination: destination === 'none' ? null : destination };
+                } else {
+                    console.log(`[CLASSIFICATION] Invalid classification "${category}", defaulting to general`);
+                    return { category: 'general', destination: null };
+                }
             } else {
-                console.log(`[CLASSIFICATION] Invalid classification "${category}", defaulting to general`);
-                return 'general';
+                console.log(`[CLASSIFICATION] Invalid response format, defaulting to general`);
+                return { category: 'general', destination: null };
             }
         } catch (error) {
             console.error('[CLASSIFICATION] Error in LLM-based classification:', error);
             console.log('[CLASSIFICATION] Falling back to keyword-based classification');
             const fallbackCategory = this.fallbackClassification(userMessage);
             console.log(`[CLASSIFICATION] Fallback classification result: "${fallbackCategory}"`);
-            return fallbackCategory;
+            return { category: fallbackCategory, destination: null };
         }
     }
 
@@ -134,15 +146,156 @@ class LLMService {
         }
     }
 
-    // Get direct itinerary prompt from markdown file
-    async getDirectItineraryPrompt(userMessage, context, externalData = null) {
+
+
+    // STEP 2: Determine which functions to call based on user request
+    async determineFunctionCalls(userMessage, messageCategory, city, country, context) {
         try {
-            return await promptManager.buildItineraryPrompt(userMessage, context, externalData);
+            console.log('[FUNCTION CALLING] Building function calling prompt...');
+            const functionCallPrompt = await promptManager.buildFunctionCallPrompt(userMessage, messageCategory, city, country, context);
+            
+            console.log('[FUNCTION CALLING] Calling LLM for function decisions...');
+            const response = await this.callLLM(functionCallPrompt);
+            
+            console.log('[FUNCTION CALLING] LLM response:', response);
+            
+            // Parse the JSON response - handle markdown code blocks
+            try {
+                let jsonString = response.trim();
+                
+                // Remove markdown code blocks if present
+                if (jsonString.startsWith('```json')) {
+                    jsonString = jsonString.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+                } else if (jsonString.startsWith('```')) {
+                    jsonString = jsonString.replace(/^```\s*/, '').replace(/\s*```$/, '');
+                }
+                
+                const functionCalls = JSON.parse(jsonString);
+                console.log('[FUNCTION CALLING] Parsed function calls:', functionCalls);
+                return functionCalls;
+            } catch (parseError) {
+                console.error('[FUNCTION CALLING] Error parsing function calls JSON:', parseError);
+                console.log('[FUNCTION CALLING] Raw response:', response);
+                return { function_calls: [] };
+            }
         } catch (error) {
-            console.error('Error building direct itinerary prompt from markdown file:', error);
-            throw new Error('Failed to load direct itinerary prompt from markdown file');
+            console.error('[FUNCTION CALLING] Error in determineFunctionCalls:', error);
+            return { function_calls: [] };
         }
     }
+
+    // Execute the function calls and return results
+    async executeFunctionCalls(functionCalls) {
+        try {
+            console.log('[FUNCTION EXECUTION] Starting function execution...');
+            const results = {};
+            
+            for (const functionCall of functionCalls) {
+                const { name, args } = functionCall;
+                console.log(`[FUNCTION EXECUTION] Executing ${name} with args:`, args);
+                
+                try {
+                    let result = null;
+                    
+                    switch (name) {
+                        case 'getWeatherData':
+                            result = await this.callWeatherAPI(args.location);
+                            if (result) results.weather = result;
+                            break;
+                            
+                        case 'getCountryData':
+                            result = await this.callCountryAPI(args.countryName);
+                            if (result) results.country = result;
+                            break;
+                            
+
+                            
+                        default:
+                            console.warn(`[FUNCTION EXECUTION] Unknown function: ${name}`);
+                    }
+                    
+                    console.log(`[FUNCTION EXECUTION] ${name} result:`, result ? 'success' : 'failed');
+                } catch (functionError) {
+                    console.error(`[FUNCTION EXECUTION] Error executing ${name}:`, functionError);
+                }
+            }
+            
+            console.log('[FUNCTION EXECUTION] All functions completed');
+            return results;
+        } catch (error) {
+            console.error('[FUNCTION EXECUTION] Error in executeFunctionCalls:', error);
+            return {};
+        }
+    }
+
+    // API call methods
+    async callWeatherAPI(location) {
+        try {
+            console.log(`[WEATHER API] Calling weather API for location: "${location}"`);
+            const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${process.env.WEATHER_API_KEY}&units=metric`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log(`[WEATHER API] Raw API response:`, JSON.stringify(data, null, 2));
+                
+                const weatherData = {
+                    location: location,
+                    temperature: data.main.temp,
+                    description: data.weather[0].description,
+                    humidity: data.main.humidity,
+                    windSpeed: data.wind.speed,
+                    icon: data.weather[0].icon
+                };
+                
+                console.log(`[WEATHER API] Processed weather data:`, JSON.stringify(weatherData, null, 2));
+                return weatherData;
+            } else {
+                console.error(`[WEATHER API] API returned error status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('[WEATHER API] Error:', error);
+        }
+        return null;
+    }
+
+    async callCountryAPI(countryName) {
+        try {
+            console.log(`[COUNTRY API] Calling country API for country: "${countryName}"`);
+            const response = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(countryName)}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log(`[COUNTRY API] Raw API response:`, JSON.stringify(data, null, 2));
+                
+                if (data && data.length > 0) {
+                    const country = data[0];
+                    const countryData = {
+                        name: country.name.common,
+                        capital: country.capital?.[0],
+                        population: country.population,
+                        currencies: country.currencies ? Object.keys(country.currencies) : [],
+                        languages: country.languages ? Object.values(country.languages) : [],
+                        region: country.region,
+                        subregion: country.subregion,
+                        timezones: country.timezones,
+                        flag: country.flags.svg
+                    };
+                    
+                    console.log(`[COUNTRY API] Processed country data:`, JSON.stringify(countryData, null, 2));
+                    return countryData;
+                } else {
+                    console.log(`[COUNTRY API] No country data found for: "${countryName}"`);
+                }
+            } else {
+                console.error(`[COUNTRY API] API returned error status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('[COUNTRY API] Error:', error);
+        }
+        return null;
+    }
+
+
 
 
 
@@ -151,15 +304,56 @@ class LLMService {
             // Get conversation context
             const context = this.getConversationContext(sessionId);
             
-            // Check if external data is available and significant
-            const hasSignificantExternalData = externalData && Object.keys(externalData).length > 0;
-            console.log(`[PROMPT SELECTION] External data available: ${hasSignificantExternalData}`);
-            console.log(`[PROMPT SELECTION] External data: ${JSON.stringify(externalData)}`);
+            // STEP 1: LLM-based classification to determine the appropriate prompt
+            console.log('[STEP 1] Starting message classification...');
+            const classificationResult = await this.classifyUserMessage(userMessage, context);
+            const messageCategory = classificationResult.category;
+            const extractedDestination = classificationResult.destination;
             
-            // Use LLM-based classification to determine the appropriate prompt
-            console.log('[PROMPT SELECTION] Starting message classification...');
-            const messageCategory = await this.classifyUserMessage(userMessage, context);
-            console.log(`[PROMPT SELECTION] Message classified as: "${messageCategory}"`);
+            console.log(`[STEP 1] Message classified as: "${messageCategory}"`);
+            console.log(`[STEP 1] Extracted destination: "${extractedDestination || 'none'}"`);
+            
+            // Split destination into city and country
+            let city = null;
+            let country = null;
+            if (extractedDestination) {
+                const destinationParts = extractedDestination.split(',').map(part => part.trim());
+                if (destinationParts.length >= 2) {
+                    city = destinationParts[0];
+                    country = destinationParts[1];
+                } else if (destinationParts.length === 1) {
+                    city = destinationParts[0];
+                    country = destinationParts[0]; // Use city as country if only one part
+                }
+                console.log(`[STEP 1] Split destination - City: "${city}", Country: "${country}"`);
+            }
+            
+            // STEP 2: Function calling to determine which APIs to call
+            let finalExternalData = externalData || {};
+            if (extractedDestination) {
+                console.log('[STEP 2] Starting function calling...');
+                const functionCallResult = await this.determineFunctionCalls(userMessage, messageCategory, city, country, context);
+                console.log(`[STEP 2] Function calls determined:`, functionCallResult);
+                
+                // Execute the function calls and get external data
+                if (functionCallResult.function_calls && functionCallResult.function_calls.length > 0) {
+                    console.log('[STEP 2] Executing function calls...');
+                    const apiResults = await this.executeFunctionCalls(functionCallResult.function_calls);
+                    console.log(`[STEP 2] API results keys:`, Object.keys(apiResults));
+                    console.log(`[STEP 2] Full API results:`, JSON.stringify(apiResults, null, 2));
+                    finalExternalData = { ...finalExternalData, ...apiResults };
+                } else {
+                    console.log('[STEP 2] No function calls needed');
+                }
+            } else {
+                console.log('[STEP 2] No destination extracted, skipping function calling');
+            }
+            
+            // STEP 3: Generate final response with external data
+            console.log('[STEP 3] Generating final response...');
+            const hasSignificantExternalData = finalExternalData && Object.keys(finalExternalData).length > 0;
+            console.log(`[STEP 3] External data available: ${hasSignificantExternalData}`);
+            console.log(`[STEP 3] External data: ${JSON.stringify(finalExternalData)}`);
             
             // Select prompt based on classification and external data availability
             let prompt;
@@ -168,50 +362,51 @@ class LLMService {
             // Always use category-specific prompts - they all handle external data
             switch (messageCategory) {
                 case 'itinerary':
-                    console.log('[PROMPT SELECTION] Using ITINERARY prompt with external data integration');
-                    prompt = await this.getItineraryPrompt(userMessage, context, externalData);
+                    console.log('[STEP 3] Using ITINERARY prompt with external data integration');
+                    prompt = await this.getItineraryPrompt(userMessage, context, finalExternalData);
                     promptType = 'itinerary';
                     break;
                 case 'planning':
-                    console.log('[PROMPT SELECTION] Using PLANNING prompt with external data integration');
-                    prompt = await this.getPlanningPrompt(userMessage, context, externalData);
+                    console.log('[STEP 3] Using PLANNING prompt with external data integration');
+                    prompt = await this.getPlanningPrompt(userMessage, context, finalExternalData);
                     promptType = 'planning';
                     break;
                 case 'packing':
-                    console.log('[PROMPT SELECTION] Using PACKING prompt with external data integration');
-                    prompt = await this.getPackingPrompt(userMessage, context, externalData);
+                    console.log('[STEP 3] Using PACKING prompt with external data integration');
+                    prompt = await this.getPackingPrompt(userMessage, context, finalExternalData);
                     promptType = 'packing';
                     break;
                 case 'destination':
-                    console.log('[PROMPT SELECTION] Using DESTINATION prompt with external data integration');
-                    prompt = await this.getDestinationPrompt(userMessage, context, externalData);
+                    console.log('[STEP 3] Using DESTINATION prompt with external data integration');
+                    prompt = await this.getDestinationPrompt(userMessage, context, finalExternalData);
                     promptType = 'destination';
                     break;
                 case 'general':
                 default:
-                    console.log('[PROMPT SELECTION] Using DESTINATION prompt as GENERAL fallback with external data integration');
-                    prompt = await this.getDestinationPrompt(userMessage, context, externalData);
+                    console.log('[STEP 3] Using DESTINATION prompt as GENERAL fallback with external data integration');
+                    prompt = await this.getDestinationPrompt(userMessage, context, finalExternalData);
                     promptType = 'destination_fallback';
                     break;
             }
             
-            console.log(`[PROMPT SELECTION] Final prompt type: "${promptType}"`);
-            console.log(`[PROMPT SELECTION] Prompt length: ${prompt.length} characters`);
+            console.log(`[STEP 3] Final prompt type: "${promptType}"`);
+            console.log(`[STEP 3] Prompt length: ${prompt.length} characters`);
 
-            // Call LLM API
+            // Call LLM API for final response
             const response = await this.callLLM(prompt);
             
             // Update conversation context
             this.updateConversationContext(sessionId, userMessage, response);
             
-            console.log(`[PROMPT SELECTION] Response generated successfully with prompt type: "${promptType}"`);
+            console.log(`[STEP 3] Response generated successfully with prompt type: "${promptType}"`);
             
             return {
                 response,
                 context: context.length,
-                usedExternalData: !!externalData,
+                usedExternalData: !!finalExternalData && Object.keys(finalExternalData).length > 0,
                 messageCategory: messageCategory,
-                promptType: promptType
+                promptType: promptType,
+                extractedDestination: extractedDestination
             };
         } catch (error) {
             console.error('LLM Service Error:', error);
@@ -282,51 +477,16 @@ class LLMService {
             { role: 'assistant', content: assistantResponse, timestamp: new Date().toISOString() }
         );
         
-        // Keep only last 10 messages to manage context length
-        if (context.length > 10) {
-            context.splice(0, context.length - 10);
+        // Keep only last 50 messages to manage context length
+        if (context.length > 50) {
+            context.splice(0, context.length - 50);
         }
         
         this.conversationCache.set(sessionId, context);
     }
 
 
-    analyzeContext(userMessage, context) {
-        const lastUserMessage = context.find(msg => msg.role === 'user');
-        if (!lastUserMessage) {
-            return 'No previous user message to analyze.';
-        }
 
-        const lastAssistantMessage = context.find(msg => msg.role === 'assistant');
-        if (!lastAssistantMessage) {
-            return 'No previous assistant message to analyze.';
-        }
-
-        const lastUserContent = lastUserMessage.content;
-        const lastAssistantContent = lastAssistantMessage.content;
-
-        if (lastUserContent.toLowerCase().includes('yes') || lastUserContent.toLowerCase().includes('no') || lastUserContent.toLowerCase().includes('budget')) {
-            return `Last user message was a short response ("${lastUserContent}"). Understanding it as a response to the previous question.`;
-        }
-
-        if (lastUserContent.toLowerCase().includes('new topic')) {
-            return `Last user message was "new topic". Adapting to the new context while maintaining previous preferences.`;
-        }
-
-        if (lastUserContent.toLowerCase().includes('previous preferences')) {
-            return `Last user message was "previous preferences". Considering these preferences in the current context.`;
-        }
-
-        if (lastUserContent.toLowerCase().includes('external data')) {
-            return `Last user message was "external data". Incorporating available external data into the response.`;
-        }
-
-        if (lastUserContent.toLowerCase().includes('follow-up question')) {
-            return `Last user message was "follow-up question". Will provide ONE follow-up question if needed.`;
-        }
-
-        return 'No specific context analysis needed.';
-    }
 }
 
 export default new LLMService();

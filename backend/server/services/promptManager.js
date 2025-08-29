@@ -21,18 +21,17 @@ class PromptManager {
                 'planning-prompt.md',
                 'itinerary-prompt.md',
                 'packing-prompt.md',
-                'error-recovery-prompt.md',
                 'classification-prompt.md',
-                'data-augmentation-prompt.md'
+                'function-calling-prompt.md',
             ];
 
             for (const file of promptFiles) {
                 await this.loadPrompt(file);
             }
 
-            console.log('✅ All prompts loaded successfully');
+            console.log('All prompts loaded successfully');
         } catch (error) {
-            console.error('❌ Error initializing prompts:', error);
+            console.error('Error initializing prompts:', error);
         }
     }
 
@@ -76,16 +75,14 @@ class PromptManager {
         return await this.loadPrompt('packing-prompt.md');
     }
 
-    async getErrorRecoveryPrompt() {
-        return await this.loadPrompt('error-recovery-prompt.md');
-    }
+
 
     async getClassificationPrompt() {
         return await this.loadPrompt('classification-prompt.md');
     }
 
-    async getDataAugmentationPrompt() {
-        return await this.loadPrompt('data-augmentation-prompt.md');
+    async getFunctionCallPrompt() {
+        return await this.loadPrompt('function-calling-prompt.md');
     }
 
     replaceTemplateVariables(template, variables) {
@@ -141,7 +138,7 @@ class PromptManager {
         return this.replaceTemplateVariables(itineraryTemplate, variables);
     }
 
-    async buildPackingPrompt(userMessage, context, weatherData = null, destinationData = null) {
+    async buildPackingPrompt(userMessage, context, externalData = null) {
         const systemPrompt = await this.getSystemPrompt();
         const packingTemplate = await this.getPackingPrompt();
         
@@ -149,8 +146,7 @@ class PromptManager {
             SYSTEM_PROMPT: systemPrompt,
             USER_MESSAGE: userMessage,
             CONVERSATION_HISTORY: context.map(msg => `${msg.role}: ${msg.content}`).join('\n'),
-            WEATHER_DATA_JSON: weatherData ? JSON.stringify(weatherData) : 'None available',
-            DESTINATION_DATA_JSON: destinationData ? JSON.stringify(destinationData) : 'None available'
+            EXTERNAL_DATA_JSON: externalData ? JSON.stringify(externalData) : 'None available'
         };
 
         return this.replaceTemplateVariables(packingTemplate, variables);
@@ -167,67 +163,17 @@ class PromptManager {
         return this.replaceTemplateVariables(classificationTemplate, variables);
     }
 
-    async buildDataAugmentationPrompt(userMessage, context, externalData = null) {
-        const systemPrompt = await this.getSystemPrompt();
-        const dataAugmentationTemplate = await this.getDataAugmentationPrompt();
+    async buildFunctionCallPrompt(userMessage, messageCategory, city, country, context = []) {
+        const functionCallTemplate = await this.getFunctionCallPrompt();
         
         const variables = {
-            SYSTEM_PROMPT: systemPrompt,
             USER_MESSAGE: userMessage,
-            CONVERSATION_HISTORY: context.map(msg => `${msg.role}: ${msg.content}`).join('\n'),
-            EXTERNAL_DATA_JSON: externalData ? JSON.stringify(externalData, null, 2) : 'None available',
-            EXTERNAL_DATA_SUMMARY: this.formatExternalDataSummary(externalData)
+            EXTRACTED_INTENT: messageCategory,
+            EXTRACTED_PARAMETERS: JSON.stringify({ city: city, country: country }),
+            CONVERSATION_CONTEXT: context.map(msg => `${msg.role}: ${msg.content}`).join('\n')
         };
 
-        return this.replaceTemplateVariables(dataAugmentationTemplate, variables);
-    }
-
-    formatExternalDataSummary(externalData) {
-        if (!externalData || Object.keys(externalData).length === 0) {
-            return 'No external data available';
-        }
-
-        const summary = [];
-        
-        if (externalData.weather) {
-            summary.push(`🌤️ Weather: ${externalData.weather.temperature}°C, ${externalData.weather.description}`);
-        }
-        
-        if (externalData.country) {
-            summary.push(`🏛️ Country: ${externalData.country.name}, Currency: ${externalData.country.currencies.join(', ')}`);
-        }
-        
-        if (externalData.currency) {
-            summary.push(`💰 Currency: ${externalData.currency.currency} (${externalData.currency.symbol})`);
-        }
-        
-        if (externalData.language) {
-            summary.push(`🗣️ Language: ${externalData.language.officialLanguages.join(', ')}`);
-        }
-        
-        if (externalData.travel) {
-            summary.push(`✈️ Travel: Visa info and restrictions available`);
-        }
-        
-        if (externalData.attractions) {
-            summary.push(`🏛️ Attractions: ${externalData.attractions.topAttractions.length} top attractions listed`);
-        }
-
-        return summary.join(' | ');
-    }
-
-    async buildErrorRecoveryPrompt(userMessage, context, contextInfo = null) {
-        const systemPrompt = await this.getSystemPrompt();
-        const errorTemplate = await this.getErrorRecoveryPrompt();
-        
-        const variables = {
-            SYSTEM_PROMPT: systemPrompt,
-            USER_MESSAGE: userMessage,
-            CONVERSATION_HISTORY: context.map(msg => `${msg.role}: ${msg.content}`).join('\n'),
-            CONTEXT_INFO: contextInfo || 'No additional context available'
-        };
-
-        return this.replaceTemplateVariables(errorTemplate, variables);
+        return this.replaceTemplateVariables(functionCallTemplate, variables);
     }
 
     // Helper method to extract the actual prompt content from markdown
@@ -284,29 +230,6 @@ class PromptManager {
         }
         
         return result;
-    }
-
-
-
-    
-    //Not used currently
-
-    // Method to get all available prompts
-    getAvailablePrompts() {
-        return Array.from(this.promptCache.keys());
-    }
-
-    // Method to clear cache - not used currently
-    clearCache() {
-        this.promptCache.clear();
-        console.log('🗑️ Prompt cache cleared');
-    }
-
-    // Method to reload all prompts - not used currently
-    async reloadPrompts() {
-        this.clearCache();
-        await this.initializePrompts();
-        console.log('🔄 All prompts reloaded');
     }
 }
 

@@ -101,6 +101,7 @@ This prompt is used for:
 - **Practical considerations**: Shoe removal, head coverings, etc.
 
 ## EXPECTED RESPONSE
+- **CoT – Expected response**: Show the chain of thought in the final answer step by step, then provide the final answer. Each step should be summarized briefly.
 - Weather-appropriate clothing recommendations
 - Essential items and accessories
 - Cultural and practical considerations

@@ -99,6 +99,8 @@ This prompt is used for:
 - **Step 5**: Practical implementation details
 
 ## EXPECTED RESPONSE FORMAT
+**CoT – Expected response**: Show the chain of thought in the final answer step by step, then provide the final answer. Each step should be summarized briefly.
+
 ```
 Day 1: [City Name] - [Theme/Focus]
 - Morning: [Activity with timing]

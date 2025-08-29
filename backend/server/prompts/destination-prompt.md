@@ -79,6 +79,7 @@ This prompt is used for:
 - `{{EXTERNAL_DATA_JSON}}`: Weather, country, or travel data (if available)
 
 ## EXPECTED RESPONSE
+- **CoT – Expected response**: Show the chain of thought in the final answer step by step, then provide the final answer. Each step should be summarized briefly.
 - Specific destination recommendations (only for real places)
 - Cultural insights and practical tips
 - Budget and timing considerations
