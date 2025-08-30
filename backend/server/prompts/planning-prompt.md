@@ -1,12 +1,5 @@
 # Complex Travel Planning Prompt Template
 
-## CRITICAL LENGTH CONSTRAINT
-**MAXIMUM 250 WORDS TOTAL. NO EXCEPTIONS.**
-- Use bullet points only
-- No detailed explanations
-- Focus on essential information only
-- If response exceeds 250 words, you have FAILED
-
 ## PROMPT FOCUS & COMPLEXITY
 **Focus**: "How & Why?" - Multi-faceted coordination and strategic planning  
 **Scope**: Multi-faceted coordination  
@@ -329,11 +322,8 @@ This prompt is used for:
 
 **IMPORTANT**: NEVER show your thinking process to the user. Only provide the final, polished answer.
 
-**LENGTH CONSTRAINT**: MAXIMUM 250 WORDS TOTAL. Use bullet points only. No detailed explanations. Focus on essential information only.
 
 ```
-## EXPECTED RESPONSE FORMAT
-**LENGTH CONSTRAINT**: MAXIMUM 250 WORDS TOTAL. Use bullet points only. No detailed explanations.
 
 **Planning Summary:**
 
@@ -373,7 +363,6 @@ This prompt is used for:
 
 **Next Step**: Which 5 countries do you want to visit?
 
-**Note**: This response is exactly 250 words - the maximum allowed.
 
 **User**: "How do I plan a luxury honeymoon with a $15,000 budget?"
 **Good Response**:

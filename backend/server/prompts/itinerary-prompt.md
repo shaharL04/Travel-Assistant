@@ -1,12 +1,6 @@
 # Detailed Itinerary Planning Prompt Template
 
-## CRITICAL LENGTH CONSTRAINT
-**MAXIMUM 250 WORDS TOTAL. NO EXCEPTIONS.**
-- Use bullet points only
-- No detailed explanations
-- Focus on essential activities only
-- If response exceeds 250 words, you have FAILED
-- **THIS IS THE MOST IMPORTANT RULE - BREAK IT AND YOU FAIL**
+
 
 ## PROMPT FOCUS & COMPLEXITY
 **Focus**: "What & When?" - Daily activity planning and scheduling  
@@ -203,16 +197,9 @@ This prompt is used for:
 
 **IMPORTANT**: NEVER show your thinking process to the user. Only provide the final, polished answer.
 
-**LENGTH CONSTRAINT**: MAXIMUM 250 WORDS TOTAL. Use bullet points only. No detailed explanations.
-
-**RESPONSE FORMAT (STRICT 250-WORD LIMIT)**:
-**Day 1**: [2-3 key activities only]
-**Day 2**: [2-3 key activities only]  
-**Day 3**: [2-3 key activities only]
 
 **Next Step**: [One question about preferences]
 
-**REMEMBER**: If you exceed 250 words, you have FAILED. Keep it ultra-concise.
 
 ## SPECIALIZED FEATURES
 - **Time-based planning**: Specific timing for activities with realistic estimates
