@@ -1,35 +1,26 @@
-import axios from 'axios';
-import NodeCache from 'node-cache';
-import dotenv from 'dotenv';
-dotenv.config();
+import apiService from './apiService.js';
+import promptManager from './promptManager.js';
 
 class FunctionCallingService {
     constructor() {
-        this.cache = new NodeCache({ stdTTL: 1800 }); // 30 minutes TTL
-        
-        // Load environment variables
-        this.weatherApiKey = process.env.WEATHER_API_KEY;
-        
-        // API endpoints
-        this.countryApiUrl = 'https://restcountries.com/v3.1';
-        this.weatherApiUrl = 'https://api.openweathermap.org/data/2.5';
-        
-        // Define available functions
-        this.availableFunctions = {
-            getWeatherData: {
+        // Define available functions with Gemini-compatible schemas
+        this.availableFunctions = [
+            {
+                name: "getWeatherData",
                 description: "Get current weather information for a specific location",
                 parameters: {
                     type: "object",
                     properties: {
                         location: {
                             type: "string",
-                            description: "The city and country (e.g., 'Paris, France')"
+                            description: "The city(e.g., 'Paris')"
                         }
                     },
                     required: ["location"]
                 }
             },
-            getCountryData: {
+            {
+                name: "getCountryData",
                 description: "Get country information including currency, language, population, etc.",
                 parameters: {
                     type: "object",
@@ -42,146 +33,100 @@ class FunctionCallingService {
                     required: ["countryName"]
                 }
             }
-        };
+        ];
     }
 
-    // Main function calling method
-    async callFunctions(userMessage, destination, conversationContext = []) {
+    // Get function declarations for Gemini API
+    getFunctionDeclarations() {
+        return this.availableFunctions;
+    }
+
+    // Execute function calls and return results
+    async executeFunctionCalls(functionCalls) {
         try {
-            console.log(`[FUNCTION CALLING] Starting function calling for message: "${userMessage.substring(0, 50)}${userMessage.length > 50 ? '...' : ''}"`);
-            console.log(`[FUNCTION CALLING] Destination: ${destination || 'none'}`);
-            
-            // Determine which functions to call based on message content and context
-            const functionDecisions = this.analyzeFunctionNeeds(userMessage, destination, conversationContext);
-            console.log(`[FUNCTION CALLING] Function decisions:`, functionDecisions);
-            
+            console.log('[FUNCTION EXECUTION] Starting function execution...');
             const results = {};
             
-            // Call weather function if needed
-            if (functionDecisions.needsWeather && destination) {
-                console.log(`[FUNCTION CALLING] Calling getWeatherData for ${destination}`);
+            for (const functionCall of functionCalls) {
+                const { name, args } = functionCall;
+                console.log(`[FUNCTION EXECUTION] Executing ${name} with args:`, args);
+                
                 try {
-                    const weatherData = await this.getWeatherData(destination);
-                    if (weatherData) {
-                        results.weather = weatherData;
+                    let result = null;
+                    
+                    switch (name) {
+                        case 'getWeatherData':
+                            result = await apiService.getWeatherData(args.location);
+                            if (result) results.weather = result;
+                            break;
+                            
+                        case 'getCountryData':
+                            result = await apiService.getCountryData(args.countryName);
+                            if (result) results.country = result;
+                            break;
+                            
+                        default:
+                            console.warn(`[FUNCTION EXECUTION] Unknown function: ${name}`);
                     }
-                } catch (error) {
-                    console.error(`[FUNCTION CALLING] Weather function error:`, error);
+                    
+                    console.log(`[FUNCTION EXECUTION] ${name} result:`, result ? 'success' : 'failed');
+                } catch (functionError) {
+                    console.error(`[FUNCTION EXECUTION] Error executing ${name}:`, functionError);
                 }
             }
             
-            // Call country function if needed
-            if (functionDecisions.needsCountry && destination) {
-                console.log(`[FUNCTION CALLING] Calling getCountryData for ${destination}`);
-                try {
-                    const countryData = await this.getCountryData(destination);
-                    if (countryData) {
-                        results.country = countryData;
-                    }
-                } catch (error) {
-                    console.error(`[FUNCTION CALLING] Country function error:`, error);
-                }
+            console.log('[FUNCTION EXECUTION] All functions completed');
+            return results;
+        } catch (error) {
+            console.error('[FUNCTION EXECUTION] Error in executeFunctionCalls:', error);
+            return {};
+        }
+    }
+
+    // Build function calling prompt for LLM
+    async buildFunctionCallPrompt(userMessage, messageCategory, city, country, context) {
+        try {
+            const functionCallTemplate = await promptManager.getFunctionCallPrompt();
+            
+            const variables = {
+                USER_MESSAGE: userMessage,
+                EXTRACTED_INTENT: messageCategory,
+                EXTRACTED_PARAMETERS: JSON.stringify({ city: city, country: country }),
+                CONVERSATION_CONTEXT: context.map(msg => `${msg.role}: ${msg.content}`).join('\n'),
+                AVAILABLE_FUNCTIONS: this.availableFunctions.map(func => {
+                    return `- ${func.name}: ${func.description}
+                    Parameters: ${JSON.stringify(func.parameters, null, 2)}`;
+                    }).join('\n')
+            };
+
+            return promptManager.replaceTemplateVariables(functionCallTemplate, variables);
+        } catch (error) {
+            console.error('[FUNCTION CALLING] Error building function call prompt:', error);
+
+        }
+    }
+
+    // Parse LLM function calling response
+    parseFunctionCallResponse(response) {
+        try {
+            let jsonString = response.trim();
+            
+            // Remove markdown code blocks if present
+            if (jsonString.startsWith('```json')) {
+                jsonString = jsonString.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            } else if (jsonString.startsWith('```')) {
+                jsonString = jsonString.replace(/^```\s*/, '').replace(/\s*```$/, '');
             }
             
-            console.log(`[FUNCTION CALLING] Function calling completed. Results:`, Object.keys(results));
-            return {
-                decisions: functionDecisions,
-                data: results
-            };
-            
-        } catch (error) {
-            console.error('[FUNCTION CALLING] Error in function calling:', error);
-            return {
-                decisions: { needsWeather: false, needsCountry: false },
-                data: {}
-            };
+            const functionCalls = JSON.parse(jsonString);
+            console.log('[FUNCTION CALLING] Parsed function calls:', functionCalls);
+            return functionCalls;
+        } catch (parseError) {
+            console.error('[FUNCTION CALLING] Error parsing function calls JSON:', parseError);
+            console.log('[FUNCTION CALLING] Raw response:', response);
+            return { function_calls: [] };
         }
     }
-
-    // Analyze what functions are needed based on message content
-    analyzeFunctionNeeds(userMessage, destination, conversationContext = []) {
-        const message = userMessage.toLowerCase();
-        const contextText = conversationContext.map(msg => msg.content).join(' ').toLowerCase();
-        const fullText = `${message} ${contextText}`;
-        
-        const needs = {
-            weather: false,
-            country: false
-        };
-        
-        // Weather-related keywords
-        const weatherKeywords = ['weather', 'temperature', 'climate', 'rain', 'sunny', 'cold', 'hot', 'season', 'forecast', 'humidity', 'wind'];
-        needs.weather = weatherKeywords.some(keyword => fullText.includes(keyword));
-        
-        // Country-related keywords
-        const countryKeywords = ['country', 'currency', 'language', 'population', 'capital', 'timezone', 'culture', 'customs', 'traditions'];
-        needs.country = countryKeywords.some(keyword => fullText.includes(keyword));
-        
-        return needs;
-    }
-
-    // Function implementations
-    async getWeatherData(location) {
-        try {
-            const cacheKey = `weather_${location.toLowerCase()}`;
-            const cached = this.cache.get(cacheKey);
-            if (cached) return cached;
-
-            const response = await axios.get(
-                `${this.weatherApiUrl}/weather?q=${encodeURIComponent(location)}&appid=${this.weatherApiKey}&units=metric`
-            );
-
-            const weatherData = {
-                location: location,
-                temperature: response.data.main.temp,
-                description: response.data.weather[0].description,
-                humidity: response.data.main.humidity,
-                windSpeed: response.data.wind.speed,
-                icon: response.data.weather[0].icon
-            };
-
-            this.cache.set(cacheKey, weatherData);
-            return weatherData;
-        } catch (error) {
-            console.error('Weather API Error:', error);
-            return null;
-        }
-    }
-
-    async getCountryData(countryName) {
-        try {
-            const cacheKey = `country_${countryName.toLowerCase()}`;
-            const cached = this.cache.get(cacheKey);
-            if (cached) return cached;
-
-            const response = await axios.get(`${this.countryApiUrl}/name/${encodeURIComponent(countryName)}`);
-            
-            if (response.data && response.data.length > 0) {
-                const country = response.data[0];
-                const countryData = {
-                    name: country.name.common,
-                    capital: country.capital?.[0],
-                    population: country.population,
-                    currencies: country.currencies ? Object.keys(country.currencies) : [],
-                    languages: country.languages ? Object.values(country.languages) : [],
-                    region: country.region,
-                    subregion: country.subregion,
-                    timezones: country.timezones,
-                    flag: country.flags.svg
-                };
-
-                this.cache.set(cacheKey, countryData);
-                return countryData;
-            }
-
-            return null;
-        } catch (error) {
-            console.error('Country API Error:', error);
-            return null;
-        }
-    }
-
-
 }
 
 export default new FunctionCallingService();

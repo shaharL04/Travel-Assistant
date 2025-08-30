@@ -26,10 +26,6 @@ class ChatController {
             // Use sessionId from frontend, or generate a simple fallback if not provided
             const currentSessionId = sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
             console.log(`[${requestId}] Using session ID: ${currentSessionId}`);
-
-            // Get conversation context for enhanced decision making
-            const conversationContext = llmService.getConversationContext(sessionId);
-            console.log(`[${requestId}] Conversation context has ${conversationContext.length} messages`);
             
             // Generate LLM response with 3-step process (classification -> function calling -> final response)
             console.log(`[${requestId}] Starting 3-step LLM process...`);
@@ -45,6 +41,8 @@ class ChatController {
             console.log(`[${requestId}] LLM message category: ${llmResponse.messageCategory || 'unknown'}`);
             console.log(`[${requestId}] LLM prompt type: ${llmResponse.promptType || 'unknown'}`);
             console.log(`[${requestId}] LLM extracted destination: ${llmResponse.extractedDestination || 'none'}`);
+            console.log(`[${requestId}] LLM parsed city: ${llmResponse.parsedCity || 'null'}`);
+            console.log(`[${requestId}] LLM parsed country: ${llmResponse.parsedCountry || 'null'}`);
             console.log(`[${requestId}] LLM response preview: ${llmResponse.response?.substring(0, 100)}...`);
 
             // Prepare response
@@ -56,6 +54,8 @@ class ChatController {
                     messageCount: llmResponse.context,
                     usedExternalData: llmResponse.usedExternalData,
                     destination: llmResponse.extractedDestination,
+                    parsedCity: llmResponse.parsedCity,
+                    parsedCountry: llmResponse.parsedCountry,
                     externalData: {} // External data is now handled internally in the LLM service
                 },
                 timestamp: new Date().toISOString()

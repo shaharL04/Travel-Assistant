@@ -1,6 +1,8 @@
 import axios from 'axios';
 import NodeCache from 'node-cache';
 import promptManager from './promptManager.js';
+import apiService from './apiService.js';
+import functionCallingService from './functionCallingService.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -146,38 +148,22 @@ class LLMService {
         }
     }
 
-
-
     // STEP 2: Determine which functions to call based on user request
     async determineFunctionCalls(userMessage, messageCategory, city, country, context) {
         try {
-            console.log('[FUNCTION CALLING] Building function calling prompt...');
-            const functionCallPrompt = await promptManager.buildFunctionCallPrompt(userMessage, messageCategory, city, country, context);
+            console.log('[FUNCTION CALLING] Using Gemini native function calling...');
             
-            console.log('[FUNCTION CALLING] Calling LLM for function decisions...');
-            const response = await this.callLLM(functionCallPrompt);
+            // Build function calling prompt using the service and template
+            const functionCallPrompt = await functionCallingService.buildFunctionCallPrompt(userMessage, messageCategory, city, country, context);
+
+            console.log('[FUNCTION CALLING] Calling LLM with function calling enabled...');
+            const response = await this.callGeminiAPI(functionCallPrompt, true); // Enable function calling
             
             console.log('[FUNCTION CALLING] LLM response:', response);
             
-            // Parse the JSON response - handle markdown code blocks
-            try {
-                let jsonString = response.trim();
-                
-                // Remove markdown code blocks if present
-                if (jsonString.startsWith('```json')) {
-                    jsonString = jsonString.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-                } else if (jsonString.startsWith('```')) {
-                    jsonString = jsonString.replace(/^```\s*/, '').replace(/\s*```$/, '');
-                }
-                
-                const functionCalls = JSON.parse(jsonString);
-                console.log('[FUNCTION CALLING] Parsed function calls:', functionCalls);
-                return functionCalls;
-            } catch (parseError) {
-                console.error('[FUNCTION CALLING] Error parsing function calls JSON:', parseError);
-                console.log('[FUNCTION CALLING] Raw response:', response);
-                return { function_calls: [] };
-            }
+            // Parse the function calling response using the service
+            const functionCalls = functionCallingService.parseFunctionCallResponse(response);
+            return functionCalls;
         } catch (error) {
             console.error('[FUNCTION CALLING] Error in determineFunctionCalls:', error);
             return { function_calls: [] };
@@ -188,38 +174,7 @@ class LLMService {
     async executeFunctionCalls(functionCalls) {
         try {
             console.log('[FUNCTION EXECUTION] Starting function execution...');
-            const results = {};
-            
-            for (const functionCall of functionCalls) {
-                const { name, args } = functionCall;
-                console.log(`[FUNCTION EXECUTION] Executing ${name} with args:`, args);
-                
-                try {
-                    let result = null;
-                    
-                    switch (name) {
-                        case 'getWeatherData':
-                            result = await this.callWeatherAPI(args.location);
-                            if (result) results.weather = result;
-                            break;
-                            
-                        case 'getCountryData':
-                            result = await this.callCountryAPI(args.countryName);
-                            if (result) results.country = result;
-                            break;
-                            
-
-                            
-                        default:
-                            console.warn(`[FUNCTION EXECUTION] Unknown function: ${name}`);
-                    }
-                    
-                    console.log(`[FUNCTION EXECUTION] ${name} result:`, result ? 'success' : 'failed');
-                } catch (functionError) {
-                    console.error(`[FUNCTION EXECUTION] Error executing ${name}:`, functionError);
-                }
-            }
-            
+            const results = await functionCallingService.executeFunctionCalls(functionCalls);
             console.log('[FUNCTION EXECUTION] All functions completed');
             return results;
         } catch (error) {
@@ -228,76 +183,7 @@ class LLMService {
         }
     }
 
-    // API call methods
-    async callWeatherAPI(location) {
-        try {
-            console.log(`[WEATHER API] Calling weather API for location: "${location}"`);
-            const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${process.env.WEATHER_API_KEY}&units=metric`);
-            
-            if (response.ok) {
-                const data = await response.json();
-                console.log(`[WEATHER API] Raw API response:`, JSON.stringify(data, null, 2));
-                
-                const weatherData = {
-                    location: location,
-                    temperature: data.main.temp,
-                    description: data.weather[0].description,
-                    humidity: data.main.humidity,
-                    windSpeed: data.wind.speed,
-                    icon: data.weather[0].icon
-                };
-                
-                console.log(`[WEATHER API] Processed weather data:`, JSON.stringify(weatherData, null, 2));
-                return weatherData;
-            } else {
-                console.error(`[WEATHER API] API returned error status: ${response.status}`);
-            }
-        } catch (error) {
-            console.error('[WEATHER API] Error:', error);
-        }
-        return null;
-    }
-
-    async callCountryAPI(countryName) {
-        try {
-            console.log(`[COUNTRY API] Calling country API for country: "${countryName}"`);
-            const response = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(countryName)}`);
-            
-            if (response.ok) {
-                const data = await response.json();
-                console.log(`[COUNTRY API] Raw API response:`, JSON.stringify(data, null, 2));
-                
-                if (data && data.length > 0) {
-                    const country = data[0];
-                    const countryData = {
-                        name: country.name.common,
-                        capital: country.capital?.[0],
-                        population: country.population,
-                        currencies: country.currencies ? Object.keys(country.currencies) : [],
-                        languages: country.languages ? Object.values(country.languages) : [],
-                        region: country.region,
-                        subregion: country.subregion,
-                        timezones: country.timezones,
-                        flag: country.flags.svg
-                    };
-                    
-                    console.log(`[COUNTRY API] Processed country data:`, JSON.stringify(countryData, null, 2));
-                    return countryData;
-                } else {
-                    console.log(`[COUNTRY API] No country data found for: "${countryName}"`);
-                }
-            } else {
-                console.error(`[COUNTRY API] API returned error status: ${response.status}`);
-            }
-        } catch (error) {
-            console.error('[COUNTRY API] Error:', error);
-        }
-        return null;
-    }
-
-
-
-
+    // API calls are now handled by apiService.js
 
     async generateResponse(userMessage, sessionId, externalData = null) {
         try {
@@ -316,22 +202,32 @@ class LLMService {
             // Split destination into city and country
             let city = null;
             let country = null;
-            if (extractedDestination) {
+            if (extractedDestination && extractedDestination !== 'none') {
                 const destinationParts = extractedDestination.split(',').map(part => part.trim());
                 if (destinationParts.length >= 2) {
+                    // City + Country format: "Paris, France"
                     city = destinationParts[0];
                     country = destinationParts[1];
+                    console.log(`[STEP 1] City + Country format detected - City: "${city}", Country: "${country}"`);
                 } else if (destinationParts.length === 1) {
-                    city = destinationParts[0];
-                    country = destinationParts[0]; // Use city as country if only one part
+                    // Country Only format: "Japan" (no comma)
+                    city = null;
+                    country = destinationParts[0];
+                    console.log(`[STEP 1] Country Only format detected - City: null, Country: "${country}"`);
                 }
-                console.log(`[STEP 1] Split destination - City: "${city}", Country: "${country}"`);
+            } else {
+                city = null;
+                country = null;
+                console.log(`[STEP 1] No destination detected - City: null, Country: null`);
             }
+            
+            console.log(`[STEP 1] Final destination parsing - City: "${city || 'null'}", Country: "${country || 'null'}"`);
             
             // STEP 2: Function calling to determine which APIs to call
             let finalExternalData = externalData || {};
-            if (extractedDestination) {
+            if (city || country) {
                 console.log('[STEP 2] Starting function calling...');
+                console.log(`[STEP 2] Available data - City: "${city || 'null'}", Country: "${country || 'null'}"`);
                 const functionCallResult = await this.determineFunctionCalls(userMessage, messageCategory, city, country, context);
                 console.log(`[STEP 2] Function calls determined:`, functionCallResult);
                 
@@ -346,7 +242,7 @@ class LLMService {
                     console.log('[STEP 2] No function calls needed');
                 }
             } else {
-                console.log('[STEP 2] No destination extracted, skipping function calling');
+                console.log('[STEP 2] No city or country available, skipping function calling');
             }
             
             // STEP 3: Generate final response with external data
@@ -406,7 +302,9 @@ class LLMService {
                 usedExternalData: !!finalExternalData && Object.keys(finalExternalData).length > 0,
                 messageCategory: messageCategory,
                 promptType: promptType,
-                extractedDestination: extractedDestination
+                extractedDestination: extractedDestination,
+                parsedCity: city,
+                parsedCountry: country
             };
         } catch (error) {
             console.error('LLM Service Error:', error);
@@ -426,13 +324,13 @@ class LLMService {
         }
     }
 
-    async callGeminiAPI(prompt) {
+    async callGeminiAPI(prompt, useFunctionCalling = false) {
         try {
             if (!this.apiKey) {
                 throw new Error('Gemini API key is required. Please set GEMINI_API_KEY in your environment variables.');
             }
 
-            const response = await axios.post(`${this.apiUrl}?key=${this.apiKey}`, {
+            const requestBody = {
                 contents: [
                     {
                         parts: [
@@ -448,7 +346,18 @@ class LLMService {
                     topP: 0.9,
                     topK: 40
                 }
-            }, {
+            };
+
+            // Add function calling tools if requested
+            if (useFunctionCalling) {
+                requestBody.tools = [
+                    {
+                        functionDeclarations: functionCallingService.getFunctionDeclarations()
+                    }
+                ];
+            }
+
+            const response = await axios.post(`${this.apiUrl}?key=${this.apiKey}`, requestBody, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -484,9 +393,6 @@ class LLMService {
         
         this.conversationCache.set(sessionId, context);
     }
-
-
-
 }
 
 export default new LLMService();

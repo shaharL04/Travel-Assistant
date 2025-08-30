@@ -14,6 +14,8 @@ WEATHER DATA: {{WEATHER_DATA_JSON}}
 
 DESTINATION INFO: {{DESTINATION_DATA_JSON}}
 
+**EXTERNAL DATA PRIORITY**: If weather or destination data exists, prioritize and prominently feature this real-time information in your packing recommendations. Use current weather conditions for clothing suggestions and current country data for cultural and practical considerations.
+
 CONTEXT ANALYSIS:
 - Analyze if this is a follow-up response to a previous question
 - Check if the user's response is short (1-3 words) indicating a follow-up answer

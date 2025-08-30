@@ -14,7 +14,7 @@ class PromptManager {
 
     async initializePrompts() {
         try {
-            // Pre-load all prompts into cache
+            // Pre-load all prompts into cache for faaster loading
             const promptFiles = [
                 'system-prompt.md',
                 'destination-prompt.md',
@@ -74,8 +74,6 @@ class PromptManager {
     async getPackingPrompt() {
         return await this.loadPrompt('packing-prompt.md');
     }
-
-
 
     async getClassificationPrompt() {
         return await this.loadPrompt('classification-prompt.md');
@@ -178,13 +176,11 @@ class PromptManager {
 
     // Helper method to extract the actual prompt content from markdown
     extractPromptContent(markdownContent) {
-        // Remove markdown headers and documentation, keep only the prompt template
         const lines = markdownContent.split('\n');
         const promptLines = [];
         let inPromptSection = false;
         
         for (const line of lines) {
-            // Skip markdown headers and documentation sections
             if (line.startsWith('#') || line.startsWith('##') || line.startsWith('###')) {
                 continue;
             }
@@ -199,11 +195,9 @@ class PromptManager {
                 break;
             }
             
-            // If we're in a code block, add the line
             if (inPromptSection) {
                 promptLines.push(line);
             }
-            // If we're not in a code block and the line is not empty, add it
             else if (line.trim() !== '' && !line.startsWith('##') && !line.startsWith('USAGE') && !line.startsWith('VARIABLES') && !line.startsWith('CHAIN') && !line.startsWith('EXPECTED') && !line.startsWith('SPECIALIZED')) {
                 promptLines.push(line);
             }
