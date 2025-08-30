@@ -1,36 +1,44 @@
 import apiService from './apiService.js';
-import promptManager from './promptManager.js';
 
 class FunctionCallingService {
     constructor() {
         // Define available functions with Gemini-compatible schemas
         this.availableFunctions = [
             {
-                name: "getWeatherData",
-                description: "Get current weather information for a specific location",
+                name: "analyze_travel_request",
+                description: "Classify the user's travel question, extract entities, and decide which external data to fetch if needed. If external data is needed, provide only the city name as the function argument. Use null for unknown optional fields. If category is missing, fallback to 'destination'.",
                 parameters: {
                     type: "object",
                     properties: {
-                        location: {
+                        category: {
                             type: "string",
-                            description: "The city(e.g., 'Paris')"
+                            enum: ["destination", "planning", "itinerary", "packing", "general"]
+                        },
+                        city: {
+                            type: "string"
+                        },
+                        country: {
+                            type: "string"
+                        },
+                        function_to_call: {
+                            type: "string",
+                            enum: ["get_weather", "get_country_info", "none"]
+                        },
+                        function_args: {
+                            type: "object",
+                            properties: {
+                                city: {
+                                    type: "string",
+                                    description: "City name for weather API calls. Use empty string if unknown."
+                                },
+                                country: {
+                                    type: "string", 
+                                    description: "Country name for country info API calls. Use empty string if unknown."
+                                }
+                            }
                         }
                     },
-                    required: ["location"]
-                }
-            },
-            {
-                name: "getCountryData",
-                description: "Get country information including currency, language, population, etc.",
-                parameters: {
-                    type: "object",
-                    properties: {
-                        countryName: {
-                            type: "string",
-                            description: "The name of the country"
-                        }
-                    },
-                    required: ["countryName"]
+                    required: ["category"]
                 }
             }
         ];
@@ -55,13 +63,14 @@ class FunctionCallingService {
                     let result = null;
                     
                     switch (name) {
+                            
                         case 'getWeatherData':
-                            result = await apiService.getWeatherData(args.location);
+                            result = await apiService.getWeatherData(args.city);
                             if (result) results.weather = result;
                             break;
                             
                         case 'getCountryData':
-                            result = await apiService.getCountryData(args.countryName);
+                            result = await apiService.getCountryData(args.city);
                             if (result) results.country = result;
                             break;
                             
@@ -83,50 +92,32 @@ class FunctionCallingService {
         }
     }
 
-    // Build function calling prompt for LLM
-    async buildFunctionCallPrompt(userMessage, messageCategory, city, country, context) {
+        async executeExternalAPIs(analysis) {
         try {
-            const functionCallTemplate = await promptManager.getFunctionCallPrompt();
+            console.log('[EXTERNAL API] Executing external APIs based on analysis:', analysis);
+            const results = {};
             
-            const variables = {
-                USER_MESSAGE: userMessage,
-                EXTRACTED_INTENT: messageCategory,
-                EXTRACTED_PARAMETERS: JSON.stringify({ city: city, country: country }),
-                CONVERSATION_CONTEXT: context.map(msg => `${msg.role}: ${msg.content}`).join('\n'),
-                AVAILABLE_FUNCTIONS: this.availableFunctions.map(func => {
-                    return `- ${func.name}: ${func.description}
-                    Parameters: ${JSON.stringify(func.parameters, null, 2)}`;
-                    }).join('\n')
-            };
-
-            return promptManager.replaceTemplateVariables(functionCallTemplate, variables);
-        } catch (error) {
-            console.error('[FUNCTION CALLING] Error building function call prompt:', error);
-
-        }
-    }
-
-    // Parse LLM function calling response
-    parseFunctionCallResponse(response) {
-        try {
-            let jsonString = response.trim();
-            
-            // Remove markdown code blocks if present
-            if (jsonString.startsWith('```json')) {
-                jsonString = jsonString.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-            } else if (jsonString.startsWith('```')) {
-                jsonString = jsonString.replace(/^```\s*/, '').replace(/\s*```$/, '');
+            if (analysis.function_to_call === 'get_weather' && analysis.function_args?.city && analysis.function_args.city.trim() !== '') {
+                console.log('[EXTERNAL API] Fetching weather data for city:', analysis.function_args.city);
+                const weatherData = await apiService.getWeatherData(analysis.function_args.city);
+                if (weatherData) results.weather = weatherData;
             }
             
-            const functionCalls = JSON.parse(jsonString);
-            console.log('[FUNCTION CALLING] Parsed function calls:', functionCalls);
-            return functionCalls;
-        } catch (parseError) {
-            console.error('[FUNCTION CALLING] Error parsing function calls JSON:', parseError);
-            console.log('[FUNCTION CALLING] Raw response:', response);
-            return { function_calls: [] };
+            if (analysis.function_to_call === 'get_country_info' && analysis.function_args?.country && analysis.function_args.country.trim() !== '') {
+                console.log('[EXTERNAL API] Fetching country data for country:', analysis.function_args.country);
+                const countryData = await apiService.getCountryData(analysis.function_args.country);
+                if (countryData) results.country = countryData;
+            }
+            
+            console.log('[EXTERNAL API] External API results:', results);
+            return results;
+        } catch (error) {
+            console.error('[EXTERNAL API] Error executing external APIs:', error);
+            return {};
         }
     }
+
+
 }
 
 export default new FunctionCallingService();

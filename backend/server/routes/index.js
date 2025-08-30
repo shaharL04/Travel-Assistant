@@ -7,11 +7,6 @@ const router = Router();
 router.use((req, res, next) => {
     // Use sessionId from frontend if available, otherwise use a simple timestamp-based ID
     const requestId = req.body?.sessionId || `req_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
-    const timestamp = new Date().toISOString();
-    
-    console.log(`[${requestId}] [${timestamp}] Incoming request: ${req.method} ${req.path}`);
-    console.log(`[${requestId}] Request IP: ${req.ip || req.connection.remoteAddress}`);
-    console.log(`[${requestId}] User Agent: ${req.get('User-Agent')}`);
     
     // Add request ID to request object for use in controllers
     req.requestId = requestId;

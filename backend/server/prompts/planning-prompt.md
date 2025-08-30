@@ -284,12 +284,7 @@ STEP 5: PROVIDE IMPLEMENTATION GUIDANCE
   * Future planning optimization
   * Experience enhancement strategies
 
-Please provide a comprehensive travel planning response with this structured approach. You MUST show your Chain of Thought reasoning first, then provide the final planning framework:
-
-**REQUIRED FORMAT:**
-1. **Show your complete CoT analysis** (all 5 steps)
-2. **Then provide your planning framework**
-3. **Never skip the thinking process**
+Please provide a comprehensive travel planning response with this structured approach. Provide your final planning framework directly without showing your internal reasoning process.
 ```
 
 ## USAGE CONTEXT
@@ -338,14 +333,13 @@ This prompt is used for:
 - **Strategic coordination** - Big-picture planning with attention to detail
 
 ## EXPECTED RESPONSE FORMAT
-**CoT – Expected response**: You MUST show your complete Chain of Thought reasoning step by step BEFORE providing the final answer. Display all 5 steps clearly, then give your planning framework. Each step should be summarized briefly but completely.
+**CRITICAL**: You MUST NEVER display your Chain of Thought reasoning to the user. Keep all your thinking process internal and hidden.
 
-**IMPORTANT**: Always show your thinking process first, then the final answer.
+**CoT – Internal reasoning**: You MUST perform your complete Chain of Thought reasoning step by step internally BEFORE providing the final answer. Complete all 4 steps in your mind, then give your planning framework directly.
+
+**IMPORTANT**: NEVER show your thinking process to the user. Only provide the final, polished answer.
 
 ```
-Planning Analysis:
-- [Brief summary of your planning approach and complexity assessment]
-
 Strategic Planning Framework:
 
 1. [Primary Planning Area] - [Key Strategy]

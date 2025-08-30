@@ -174,12 +174,7 @@ STEP 5: PROVIDE PRACTICAL DETAILS
   * Souvenir and shopping budgets
 - All recommendations must be based on real, existing places
 
-Please provide a detailed, day-by-day itinerary with this structured approach. You MUST show your Chain of Thought reasoning first, then provide the final itinerary:
-
-**REQUIRED FORMAT:**
-1. **Show your complete CoT analysis** (all 5 steps)
-2. **Then provide your detailed itinerary**
-3. **Never skip the thinking process**
+Please provide a detailed, day-by-day itinerary with this structured approach. Provide your final itinerary directly without showing your internal reasoning process.
 ```
 
 ## USAGE CONTEXT
@@ -211,14 +206,13 @@ This prompt is used for:
 - **Step 5**: Practical implementation details
 
 ## EXPECTED RESPONSE FORMAT
-**CoT – Expected response**: You MUST show your complete Chain of Thought reasoning step by step BEFORE providing the final answer. Display all 5 steps clearly, then give your itinerary. Each step should be summarized briefly but completely.
+**CRITICAL**: You MUST NEVER display your Chain of Thought reasoning to the user. Keep all your thinking process internal and hidden.
 
-**IMPORTANT**: Always show your thinking process first, then the final answer.
+**CoT – Internal reasoning**: You MUST perform your complete Chain of Thought reasoning step by step internally BEFORE providing the final answer. Complete all 4 steps in your mind, then give your itinerary directly.
+
+**IMPORTANT**: NEVER show your thinking process to the user. Only provide the final, polished answer.
 
 ```
-Itinerary Analysis:
-- [Brief summary of your planning approach and considerations]
-
 Detailed Itinerary:
 
 DAY 1: [City Name] - [Theme/Focus]

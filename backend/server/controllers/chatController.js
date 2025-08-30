@@ -23,18 +23,17 @@ class ChatController {
                 });
             }
 
-            // Use sessionId from frontend, or generate a simple fallback if not provided
-            const currentSessionId = sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+            // Use sessionId from frontend
+            const currentSessionId = sessionId ;
             console.log(`[${requestId}] Using session ID: ${currentSessionId}`);
             
-            // Generate LLM response with 3-step process (classification -> function calling -> final response)
-            console.log(`[${requestId}] Starting 3-step LLM process...`);
+            // Generate LLM response with 2-step process (classification + function calling -> final response)
+            console.log(`[${requestId}] Starting 2-step LLM process...`);
             const llmResponse = await llmService.generateResponse(
                 message, 
-                currentSessionId, 
-                null // External data will be gathered during the process
+                currentSessionId
             );
-            console.log(`[${requestId}] 3-step LLM process completed successfully`);
+            console.log(`[${requestId}] 2-step LLM process completed successfully`);
             console.log(`[${requestId}] LLM response length: ${llmResponse.response?.length || 0} characters`);
             console.log(`[${requestId}] LLM context message count: ${llmResponse.context || 0}`);
             console.log(`[${requestId}] LLM used external data: ${llmResponse.usedExternalData ? 'yes' : 'no'}`);

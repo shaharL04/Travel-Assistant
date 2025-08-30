@@ -21,8 +21,7 @@ class PromptManager {
                 'planning-prompt.md',
                 'itinerary-prompt.md',
                 'packing-prompt.md',
-                'classification-prompt.md',
-                'function-calling-prompt.md',
+                'classification-prompt.md'
             ];
 
             for (const file of promptFiles) {
@@ -77,10 +76,6 @@ class PromptManager {
 
     async getClassificationPrompt() {
         return await this.loadPrompt('classification-prompt.md');
-    }
-
-    async getFunctionCallPrompt() {
-        return await this.loadPrompt('function-calling-prompt.md');
     }
 
     replaceTemplateVariables(template, variables) {
@@ -159,19 +154,6 @@ class PromptManager {
         };
 
         return this.replaceTemplateVariables(classificationTemplate, variables);
-    }
-
-    async buildFunctionCallPrompt(userMessage, messageCategory, city, country, context = []) {
-        const functionCallTemplate = await this.getFunctionCallPrompt();
-        
-        const variables = {
-            USER_MESSAGE: userMessage,
-            EXTRACTED_INTENT: messageCategory,
-            EXTRACTED_PARAMETERS: JSON.stringify({ city: city, country: country }),
-            CONVERSATION_CONTEXT: context.map(msg => `${msg.role}: ${msg.content}`).join('\n')
-        };
-
-        return this.replaceTemplateVariables(functionCallTemplate, variables);
     }
 
     // Helper method to extract the actual prompt content from markdown
