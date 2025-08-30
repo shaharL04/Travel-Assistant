@@ -71,33 +71,12 @@ class FunctionCallingService {
                     };
                 }
                 
-                // Handle actual external API calls
-                try {
-                    let result = null;
-                    
-                    switch (name) {
-                        case 'getWeatherData':
-                            result = await apiService.getWeatherData(args.city);
-                            if (result) results.weather = result;
-                            break;
-                            
-                        case 'getCountryData':
-                            result = await apiService.getCountryData(args.city);
-                            if (result) results.country = result;
-                            break;
-                            
-                        default:
-                            console.warn(`[FUNCTION EXECUTION] Unknown function: ${name}`);
-                    }
-                    
-                    console.log(`[FUNCTION EXECUTION] ${name} result:`, result ? 'success' : 'failed');
-                } catch (functionError) {
-                    console.error(`[FUNCTION EXECUTION] Error executing ${name}:`, functionError);
-                }
+                // If we reach here, it's an unknown function
+                console.warn(`[FUNCTION EXECUTION] Unknown function: ${name}`);
             }
             
-            console.log('[FUNCTION EXECUTION] All functions completed');
-            return results;
+            console.log('[FUNCTION EXECUTION] No valid functions found');
+            return {};
         } catch (error) {
             console.error('[FUNCTION EXECUTION] Error in executeFunctionCalls:', error);
             return {};

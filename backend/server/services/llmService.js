@@ -267,7 +267,7 @@ class LLMService {
                 ],
                 generationConfig: {
                     temperature: 0.7,
-                    maxOutputTokens: 500,
+                    maxOutputTokens: 700,
                     topP: 0.9,
                     topK: 40
                 }
