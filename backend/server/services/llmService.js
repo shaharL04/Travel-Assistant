@@ -46,24 +46,12 @@ class LLMService {
             } else if (response.type === 'text') {
                 // Gemini returned text instead of using function calling - this should not happen
                 console.error('[ANALYSIS] INFO: Gemini returned text instead of using function calling!');
+                console.error('[ANALYSIS] response.type:', response.type);
                 console.error('[ANALYSIS] Text received:', response.text);
                 console.error('[ANALYSIS] This indicates the prompt was not followed correctly.');
                 
                 // Since function calling failed, fall back to text parsing as emergency backup
                 console.log('[ANALYSIS] Falling back to emergency text parsing...');
-                return this.parseAnalysisFromText(userMessage);
-            }
-        } catch (error) {
-            console.error('[ANALYSIS] Error in analysis:', error);
-            console.log('[ANALYSIS] Function calling failed, falling back to emergency text parsing');
-            
-            // Emergency fallback when function calling completely fails
-            try {
-                return this.parseAnalysisFromText(userMessage);
-            } catch (fallbackError) {
-                console.error('[ANALYSIS] Emergency fallback also failed:', fallbackError);
-                console.log('[ANALYSIS] Using basic keyword classification as last resort');
-                
                 return {
                     category: "general",
                     city: "",
@@ -75,6 +63,10 @@ class LLMService {
                     }
                 };
             }
+        } catch (error) {
+            console.error('[ANALYSIS] Error in analysis:', error);
+            console.log('[ANALYSIS] Function calling failed, falling back to emergency text parsing');
+            
         }
     }
 
@@ -90,83 +82,6 @@ class LLMService {
         }
     }
 
-
-    parseAnalysisFromText(text) {
-        try {
-            console.log('[ANALYSIS] Parsing text for analysis:', text);
-            
-            // Simple fallback parsing for when function calling fails
-            const lowerText = text.toLowerCase();
-            
-            let category = 'destination';
-            if (lowerText.includes('itinerary') || lowerText.includes('schedule')) category = 'itinerary';
-            else if (lowerText.includes('plan') || lowerText.includes('strategy')) category = 'planning';
-            else if (lowerText.includes('pack') || lowerText.includes('bring')) category = 'packing';
-            
-            // Better city/country extraction for weather questions
-            let city = "";
-            let country = "";
-            let function_to_call = "none";
-            
-            // Check if this is a weather-related question
-            if (lowerText.includes('weather') || lowerText.includes('temperature') || lowerText.includes('climate')) {
-                function_to_call = "get_weather";
-                
-                // Look for city patterns like "Paris, France" or "in Paris"
-                const cityPatterns = [
-                    /([A-Z][a-z]+)\s*,\s*([A-Z][a-z]+)/,  // "Paris, France"
-                    /in\s+([A-Z][a-z]+)/,                   // "in Paris"
-                    /weather\s+(?:in|like)\s+([A-Z][a-z]+)/, // "weather in Paris"
-                    /([A-Z][a-z]+)\s+(?:weather|temperature)/ // "Paris weather"
-                ];
-                
-                for (const pattern of cityPatterns) {
-                    const match = text.match(pattern);
-                    if (match) {
-                        if (match[1] && match[2]) {
-                            // "Paris, France" format
-                            city = match[1];
-                            country = match[2];
-                        } else if (match[1]) {
-                            // Single city found
-                            city = match[1];
-                            // Try to extract country from context
-                            const countryMatch = text.match(/([A-Z][a-z]+)(?:\s*,\s*([A-Z][a-z]+))?/);
-                            if (countryMatch && countryMatch[2]) {
-                                country = countryMatch[2];
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-            
-            console.log(`[ANALYSIS] Parsed: category=${category}, city=${city}, country=${country}, function=${function_to_call}`);
-            
-            return {
-                category,
-                city: city || "",
-                country: country || "",
-                function_to_call,
-                function_args: {
-                    city: city || "",
-                    country: country || ""
-                }
-            };
-        } catch (error) {
-            console.error('[ANALYSIS] Fallback parsing error:', error);
-            return {
-                category: 'destination',
-                city: "",
-                country: "",
-                function_to_call: "none",
-                function_args: {
-                    city: "",
-                    country: ""
-                }
-            };
-        }
-    }
 
     // Get system prompt from markdown file
     async getSystemPrompt() {
@@ -221,11 +136,10 @@ class LLMService {
 
 
 
-    // API calls are now handled by apiService.js
 
     async generateResponse(userMessage, sessionId, externalData = null) {
         try {
-            // Get conversation context
+            // get conversation context
             const context = this.getConversationContext(sessionId);
             
             // STEP 1: Combined analysis (classification, extraction, and function decision)
@@ -353,13 +267,13 @@ class LLMService {
                 ],
                 generationConfig: {
                     temperature: 0.7,
-                    maxOutputTokens: 1000,
+                    maxOutputTokens: 500,
                     topP: 0.9,
                     topK: 40
                 }
             };
 
-            // Add function calling tools if requested
+            // add function calling tools if requested
             if (useFunctionCalling) {
                 requestBody.tools = [
                     {
@@ -397,16 +311,21 @@ class LLMService {
 
             const generatedText = part.text;
             if (generatedText) {
+                
+                const cleanText = generatedText
+                    .replace(/^```text\s*/, '')  
+                    .replace(/```\s*$/, '')
+                    .replace(/^["']+text\s*/, '')
+                    .trim();
 
-                console.log('[GEMINI API] Text preview (first 200 chars):', generatedText.substring(0, 200));
+                console.log('[GEMINI API] Text preview (first 200 chars):', cleanText.substring(0, 200));
 
                 return {
                     type: 'text',
-                    text: generatedText
+                    text: cleanText
                 };
             }
 
-            throw new Error('No valid response content received from Gemini API');
         } catch (error) {
             console.error('Gemini API Error:', error);
             if (error.response) {

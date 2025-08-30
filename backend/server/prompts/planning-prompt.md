@@ -339,6 +339,8 @@ This prompt is used for:
 
 **IMPORTANT**: NEVER show your thinking process to the user. Only provide the final, polished answer.
 
+**LENGTH CONSTRAINT**: Keep your response concise and focused. Provide essential planning information without excessive detail. Focus on key strategies and actionable steps.
+
 ```
 Strategic Planning Framework:
 

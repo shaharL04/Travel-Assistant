@@ -44,7 +44,7 @@ class ChatController {
             console.log(`[${requestId}] LLM parsed country: ${llmResponse.parsedCountry || 'null'}`);
             console.log(`[${requestId}] LLM response preview: ${llmResponse.response?.substring(0, 100)}...`);
 
-            // Prepare response
+            // prepare response
             const response = {
                 success: true,
                 sessionId: currentSessionId,
@@ -55,7 +55,7 @@ class ChatController {
                     destination: llmResponse.extractedDestination,
                     parsedCity: llmResponse.parsedCity,
                     parsedCountry: llmResponse.parsedCountry,
-                    externalData: {} // External data is now handled internally in the LLM service
+                    externalData: {} 
                 },
                 timestamp: new Date().toISOString()
             };
@@ -64,7 +64,6 @@ class ChatController {
             const processingTime = endTime - startTime;
             
             console.log(`[${requestId}] Response prepared successfully`);
-            console.log(`[${requestId}] Processing time: ${processingTime}ms`);
             console.log(`[${requestId}] Response status: 200`);
             console.log(`[${requestId}] Response body:`, JSON.stringify(response, null, 2));
             console.log(`[${requestId}] Request completed successfully`);
@@ -78,7 +77,6 @@ class ChatController {
             console.error(`[${requestId}] Chat Controller Error:`, error);
             console.error(`[${requestId}] Error stack:`, error.stack);
             console.error(`[${requestId}] Processing time before error: ${processingTime}ms`);
-            console.error(`[${requestId}] Request failed with error`);
             
             res.status(500).json({
                 success: false,

@@ -53,17 +53,29 @@ class FunctionCallingService {
     async executeFunctionCalls(functionCalls) {
         try {
             console.log('[FUNCTION EXECUTION] Starting function execution...');
-            const results = {};
             
             for (const functionCall of functionCalls) {
                 const { name, args } = functionCall;
                 console.log(`[FUNCTION EXECUTION] Executing ${name} with args:`, args);
                 
+                if (name === 'analyze_travel_request') {
+                    console.log('[FUNCTION EXECUTION] analyze_travel_request called - returning analysis directly');
+                    return {
+                        analysis: {
+                            category: args.category,
+                            city: args.city,
+                            country: args.country,
+                            function_to_call: args.function_to_call,
+                            function_args: args.function_args
+                        }
+                    };
+                }
+                
+                // Handle actual external API calls
                 try {
                     let result = null;
                     
                     switch (name) {
-                            
                         case 'getWeatherData':
                             result = await apiService.getWeatherData(args.city);
                             if (result) results.weather = result;
@@ -91,6 +103,7 @@ class FunctionCallingService {
             return {};
         }
     }
+    
 
         async executeExternalAPIs(analysis) {
         try {

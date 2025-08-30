@@ -212,6 +212,8 @@ This prompt is used for:
 
 **IMPORTANT**: NEVER show your thinking process to the user. Only provide the final, polished answer.
 
+**LENGTH CONSTRAINT**: Keep your response concise and focused. Avoid excessive detail and lengthy explanations. Provide essential information only.
+
 ```
 Detailed Itinerary:
 
