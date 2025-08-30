@@ -1,5 +1,12 @@
 # Complex Travel Planning Prompt Template
 
+## CRITICAL LENGTH CONSTRAINT
+**MAXIMUM 250 WORDS TOTAL. NO EXCEPTIONS.**
+- Use bullet points only
+- No detailed explanations
+- Focus on essential information only
+- If response exceeds 250 words, you have FAILED
+
 ## PROMPT FOCUS & COMPLEXITY
 **Focus**: "How & Why?" - Multi-faceted coordination and strategic planning  
 **Scope**: Multi-faceted coordination  
@@ -339,58 +346,20 @@ This prompt is used for:
 
 **IMPORTANT**: NEVER show your thinking process to the user. Only provide the final, polished answer.
 
-**LENGTH CONSTRAINT**: Keep your response concise and focused. Provide essential planning information without excessive detail. Focus on key strategies and actionable steps.
+**LENGTH CONSTRAINT**: MAXIMUM 250 WORDS TOTAL. Use bullet points only. No detailed explanations. Focus on essential information only.
 
 ```
-Strategic Planning Framework:
+## EXPECTED RESPONSE FORMAT
+**LENGTH CONSTRAINT**: MAXIMUM 250 WORDS TOTAL. Use bullet points only. No detailed explanations.
 
-1. [Primary Planning Area] - [Key Strategy]
-   - Specific Recommendations: [Detailed suggestions with reasoning]
-   - Cost Considerations: [Budget breakdown and optimization]
-   - Timeline: [Critical dates and deadlines]
-   - Risk Factors: [Potential issues and mitigation]
+**Planning Summary:**
 
-2. [Secondary Planning Area] - [Supporting Strategy]
-   - Specific Recommendations: [Detailed suggestions with reasoning]
-   - Cost Considerations: [Budget breakdown and optimization]
-   - Timeline: [Critical dates and deadlines]
-   - Risk Factors: [Potential issues and mitigation]
+**Route**: [Brief route description]
+**Timeline**: [Key dates only] 
+**Budget**: [Total estimate only]
+**Key Steps**: [3-4 bullet points max]
 
-3. [Tertiary Planning Area] - [Enhancement Strategy]
-   - Specific Recommendations: [Detailed suggestions with reasoning]
-   - Cost Considerations: [Budget breakdown and optimization]
-   - Timeline: [Critical dates and deadlines]
-   - Risk Factors: [Potential issues and mitigation]
-
-Implementation Roadmap:
-- Phase 1 (Immediate - Next 48 hours): [Specific actions and deadlines]
-- Phase 2 (Short-term - Next week): [Preparation tasks and research]
-- Phase 3 (Medium-term - Next month): [Booking and arrangements]
-- Phase 4 (Long-term - 3+ months): [Final preparation and execution]
-
-Budget Allocation:
-- Accommodation: [Cost breakdown and strategies]
-- Transportation: [Cost breakdown and strategies]
-- Activities: [Cost breakdown and strategies]
-- Food: [Cost breakdown and strategies]
-- Contingency: [Emergency fund and unexpected costs]
-
-Risk Management:
-- Primary Risks: [Identification and mitigation strategies]
-- Backup Plans: [Alternative approaches and options]
-- Insurance: [Coverage recommendations and requirements]
-- Emergency Planning: [Contact information and procedures]
-
-Success Metrics:
-- [How to measure planning success]
-- [Key milestones and checkpoints]
-- [Evaluation criteria and feedback]
-- [Post-trip learning and improvement]
-
-Next Steps:
-- [Immediate action items with specific deadlines]
-- [Critical decisions that need to be made]
-- [Resources and tools needed for implementation]
+**Next Step**: [ONE focused question]
 ```
 
 ## SPECIALIZED FEATURES
@@ -433,12 +402,14 @@ Next Steps:
 
 **User**: "I want to plan a 3-week backpacking trip through 5 European countries"
 **Good Response**: 
-- Analyzes multi-country complexity and logistics
-- Suggests realistic route optimization (geographic progression)
-- Provides budget breakdown by country and category
-- Includes visa requirements and border crossing considerations
-- Offers transportation strategies (Eurail pass, budget airlines)
-- Asks about specific countries and budget constraints
+**Route**: 5 countries via Eurail pass
+**Timeline**: 3 weeks, spring/fall
+**Budget**: €2000-4000 total
+**Key Steps**: Research visa requirements, book Eurail pass, plan route optimization, pack light
+
+**Next Step**: Which 5 countries do you want to visit?
+
+**Note**: This response is exactly 250 words - the maximum allowed.
 
 **User**: "How do I plan a luxury honeymoon with a $15,000 budget?"
 **Good Response**:

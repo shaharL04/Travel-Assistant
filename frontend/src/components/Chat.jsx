@@ -7,7 +7,11 @@ import { v4 as uuidv4 } from 'uuid';
 const Chat = () => {
   const [messages, setMessages] = useState([
     // sample message, TODO: replace with actual message
-    { id: 1, text: 'Hello! How can I help you today?', isUser: false }
+    { 
+      id: 1, 
+      text: 'Hi! I\'m TravelGPT, your AI travel planning assistant. I can help you plan trips, find destinations, get weather info, create itineraries, and optimize budgets. What kind of trip would you like to plan today?', 
+      isUser: false 
+    }
   ]);
   const [sessionId, setSessionId] = useState(() => uuidv4()); // Generate sessionId on component mount
   const [isLoading, setIsLoading] = useState(false);
