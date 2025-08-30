@@ -1,5 +1,13 @@
 # Detailed Itinerary Planning Prompt Template
 
+## CRITICAL LENGTH CONSTRAINT
+**MAXIMUM 250 WORDS TOTAL. NO EXCEPTIONS.**
+- Use bullet points only
+- No detailed explanations
+- Focus on essential activities only
+- If response exceeds 250 words, you have FAILED
+- **THIS IS THE MOST IMPORTANT RULE - BREAK IT AND YOU FAIL**
+
 ## PROMPT FOCUS & COMPLEXITY
 **Focus**: "What & When?" - Daily activity planning and scheduling  
 **Scope**: Daily activity planning  
@@ -212,48 +220,16 @@ This prompt is used for:
 
 **IMPORTANT**: NEVER show your thinking process to the user. Only provide the final, polished answer.
 
-**LENGTH CONSTRAINT**: Keep your response concise and focused. Avoid excessive detail and lengthy explanations. Provide essential information only.
+**LENGTH CONSTRAINT**: MAXIMUM 250 WORDS TOTAL. Use bullet points only. No detailed explanations.
 
-```
-Detailed Itinerary:
+**RESPONSE FORMAT (STRICT 250-WORD LIMIT)**:
+**Day 1**: [2-3 key activities only]
+**Day 2**: [2-3 key activities only]  
+**Day 3**: [2-3 key activities only]
 
-DAY 1: [City Name] - [Theme/Focus]
-- Morning (9:00 AM - 12:00 PM):
-  * [Activity 1] - [Location with address] - [Duration] - [Cost]
-  * [Activity 2] - [Location with address] - [Duration] - [Cost]
-  * Travel time: [Walking/Transport method] - [Time estimate]
-- Lunch (12:00 PM - 1:30 PM):
-  * [Restaurant name] - [Cuisine type] - [Price range] - [Specialty]
-- Afternoon (1:30 PM - 5:00 PM):
-  * [Activity 3] - [Location with address] - [Duration] - [Cost]
-  * [Activity 4] - [Location with address] - [Duration] - [Cost]
-  * Travel time: [Walking/Transport method] - [Time estimate]
-- Evening (5:00 PM - 8:00 PM):
-  * [Activity 5] - [Location with address] - [Duration] - [Cost]
-- Dinner (8:00 PM - 9:30 PM):
-  * [Restaurant name] - [Cuisine type] - [Price range] - [Specialty]
-- Transportation: [How to get around] - [Cost estimates]
+**Next Step**: [One question about preferences]
 
-DAY 2: [City Name] - [Theme/Focus]
-- [Continue detailed breakdown with same format]
-
-[Continue for all days]
-
-Practical Information:
-- Total Estimated Costs: [Breakdown by category]
-- Transportation Passes: [Recommendations and costs]
-- Weather Considerations: [Seasonal factors and backup plans]
-- Cultural Notes: [Etiquette, customs, and helpful tips]
-- Booking Requirements: [Advance reservations needed]
-- Alternative Options: [Backup plans for bad weather or closures]
-
-Additional Tips:
-- [Practical advice for the destination]
-- [Budget optimization strategies]
-- [Cultural insights and local customs]
-- [Safety and security considerations]
-- [Emergency contact information]
-```
+**REMEMBER**: If you exceed 250 words, you have FAILED. Keep it ultra-concise.
 
 ## SPECIALIZED FEATURES
 - **Time-based planning**: Specific timing for activities with realistic estimates
@@ -290,18 +266,15 @@ Additional Tips:
 
 **User**: "Create a 3-day itinerary for Tokyo focusing on food and culture"
 **Good Response**: 
-- Analyzes food and culture focus
-- Suggests real neighborhoods (Shibuya, Asakusa, Ginza)
-- Includes specific restaurants and food experiences
-- Provides realistic timing and travel estimates
-- Considers cultural sites and food markets
-- Asks about food preferences and budget
+**Day 1**: Shibuya food tour, Meiji Shrine
+**Day 2**: Asakusa temples, street food
+**Day 3**: Ginza shopping, sushi experience
+
+**Next Step**: What's your food budget range?
 
 **User**: "Plan a weekend in Paris for a couple"
 **Good Response**:
-- Focuses on romantic and cultural experiences
-- Suggests real attractions (Eiffel Tower, Louvre, Notre-Dame)
-- Includes romantic dining options
-- Provides walking routes and metro options
-- Considers seasonal factors and opening hours
-- Asks about specific interests and dining preferences
+**Day 1**: Eiffel Tower, Seine walk, romantic dinner
+**Day 2**: Louvre, Notre-Dame, Montmartre
+
+**Next Step**: Do you prefer fine dining or casual bistros?
