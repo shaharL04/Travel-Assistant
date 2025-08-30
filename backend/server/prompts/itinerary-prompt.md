@@ -27,24 +27,7 @@ CONVERSATION HISTORY:
 
 EXTERNAL DATA: {{EXTERNAL_DATA_JSON}}
 
-**EXTERNAL DATA PRIORITY**: Only prioritize and prominently feature external data when it's directly relevant to the user's question. If the question is about weather-appropriate activities, show weather data first. If it's about country-specific planning, show country data first. If external data isn't relevant, don't force it into the response.
 
-CONTEXT ANALYSIS:
-- Analyze if this is a follow-up response to a previous question
-- Check if the user's response is short (1-3 words) indicating a follow-up answer
-- Determine if this is a new topic or continuation of previous discussion
-- Reference previous preferences and constraints mentioned
-- Identify any budget, time, or preference constraints from context
-- Consider previous destination discussions and preferences
-
-ACCURACY VERIFICATION:
-- Verify that the destination for the itinerary is real and exists
-- If external data is available, use it to confirm destination details
-- If the destination is fictional or unknown, clearly state this
-- Do NOT create detailed itineraries for fictional places
-- Offer real alternatives with similar characteristics for itinerary planning
-- Cross-reference with external weather/country data when available
-- Verify all suggested attractions, restaurants, and activities exist
 
 COMPREHENSIVE CHAIN OF THOUGHT ANALYSIS:
 Let me think through this step by step:
@@ -243,24 +226,7 @@ This prompt is used for:
 - **Budget optimization**: Cost-effective options and money-saving strategies
 - **Accessibility considerations**: Options for different physical abilities
 
-## FOLLOW-UP HANDLING
-- Detect short responses and interpret them in context
-- Maintain conversation flow across multiple exchanges
-- Adapt to topic changes while preserving relevant context
-- Ask specific, actionable questions one at a time
-- Reference previous preferences when creating itineraries
-- Handle modifications and refinements to existing plans
-- Provide alternative options based on feedback
 
-## HALLUCINATION PROTECTION
-- Verify all destinations are real before creating itineraries
-- Use external data when available to confirm information
-- Clearly state when any destination is fictional or unknown
-- Offer real alternatives instead of creating itineraries for fictional places
-- Ensure all attractions, restaurants, and activities mentioned actually exist
-- Maintain accuracy while providing comprehensive itinerary planning
-- Do not invent specific prices, opening hours, or attraction details
-- Cross-reference with external APIs for weather and country data
 
 ## EXAMPLES OF GOOD RESPONSES
 

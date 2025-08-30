@@ -26,24 +26,7 @@ CONVERSATION HISTORY:
 
 EXTERNAL DATA: {{EXTERNAL_DATA_JSON}}
 
-**EXTERNAL DATA PRIORITY**: Only prioritize and prominently feature external data when it's directly relevant to the user's question. If the question is about weather-dependent planning, show weather data first. If it's about country-specific logistics, show country data first. If external data isn't relevant, don't force it into the response.
 
-CONTEXT ANALYSIS:
-- Analyze if this is a follow-up response to a previous question
-- Check if the user's response is short (1-3 words) indicating a follow-up answer
-- Determine if this is a new topic or continuation of previous discussion
-- Reference previous preferences and constraints mentioned
-- Identify any budget, time, or preference constraints from context
-- Consider previous destination discussions and planning decisions
-
-ACCURACY VERIFICATION:
-- Verify that all destinations mentioned are real and exist
-- If external data is available, use it to confirm destination details
-- If any destination is fictional or unknown, clearly state this
-- Do NOT create plans for fictional places
-- Offer real alternatives with similar characteristics
-- Cross-reference with external weather/country data when available
-- Verify all suggested logistics and services exist
 
 ADVANCED STRATEGIC PLANNING CHAIN OF THOUGHT ANALYSIS:
 Let me think through this step by step:
@@ -377,26 +360,7 @@ This prompt is used for:
 - **Budget optimization**: Strategic financial planning and cost management
 - **Risk mitigation**: Comprehensive contingency planning and emergency preparation
 
-## FOLLOW-UP HANDLING
-- Detect short responses and interpret them in context
-- Maintain conversation flow across multiple exchanges
-- Adapt to topic changes while preserving relevant context
-- Ask specific, actionable questions one at a time
-- Reference previous planning decisions when providing updates
-- Handle modifications and refinements to existing plans
-- Provide alternative options based on feedback and constraints
-- Guide users through complex decision-making processes
 
-## HALLUCINATION PROTECTION
-- Verify all destinations are real before creating plans
-- Use external data when available to confirm information
-- Clearly state when any destination is fictional or unknown
-- Offer real alternatives instead of creating plans for fictional places
-- Ensure all recommendations are based on real, existing locations
-- Maintain accuracy while providing comprehensive planning guidance
-- Do not invent specific prices, schedules, or service details
-- Cross-reference with external APIs for weather and country data
-- Verify all suggested logistics, services, and companies exist
 
 ## EXAMPLES OF GOOD RESPONSES
 
