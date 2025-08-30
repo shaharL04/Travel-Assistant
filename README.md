@@ -73,11 +73,13 @@ Travel-Assistant/
 │   │   ├── prompts/        # Advanced prompt templates
 │   │   ├── services/       # Core business logic
 │   │   ├── controllers/    # Request handlers
-│   │   └── routes/         # API endpoints
-│   └── tests/              # Comprehensive test suite
+│   │   ├── routes/         # API endpoints
+│   │   └── middlewares/    # Request processing
+│   └── package.json        # Backend dependencies
 └── frontend/               # React/Vite web interface
-    └── src/
-        └── components/     # UI components
+    ├── src/
+    │   └── components/     # UI components
+    └── package.json        # Frontend dependencies
 ```
 
 ## Features
@@ -96,27 +98,21 @@ Travel-Assistant/
 - **Error Recovery**: Graceful handling of API failures and edge cases
 - **Caching Strategy**: Optimized performance with intelligent caching
 
-## Testing
+## API Usage
 
-The project includes a comprehensive test suite with 277 test scenarios covering:
+The project provides a RESTful API for travel planning conversations:
 
-- Message classification accuracy
-- Destination extraction
-- Conversation flow validation
-- Error handling scenarios
-- API integration testing
+- Message classification and routing
+- Destination recommendations
+- Trip planning and itineraries
+- Packing suggestions with weather data
+- Multi-turn conversation support
 
-Run tests from the backend directory:
-```bash
-cd backend
-npm test
-```
 
 ## Documentation
 
 - [Backend Documentation](./backend/README.md) - Detailed backend implementation guide
 - [Frontend Documentation](./frontend/README.md) - Frontend architecture and components
-- [Prompt Engineering Guide](./backend/server/prompts/README.md) - Advanced prompt design patterns
 
 ## Development
 
@@ -138,11 +134,11 @@ npm run build         # Build for production
 
 This project demonstrates advanced LLM integration with:
 
-1. **Sophisticated Prompt Engineering**: 7 specialized prompt templates with chain-of-thought reasoning
+1. **Sophisticated Prompt Engineering**: 6 specialized prompt templates with chain-of-thought reasoning
 2. **Intelligent Conversation Flow**: Context-aware responses with natural follow-up handling
 3. **Robust Error Handling**: Graceful degradation and recovery mechanisms
 4. **External Data Integration**: Seamless blending of LLM knowledge with real-time data
-5. **Comprehensive Testing**: 277 test scenarios ensuring reliability
+5. **Modern Tech Stack**: React 19, Vite 7, Express 5, and Google Gemini AI
 
 ## License
 

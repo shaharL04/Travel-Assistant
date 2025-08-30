@@ -93,8 +93,7 @@ The frontend runs on `http://localhost:5173` by default when using `npm run dev`
 ### Backend Communication
 The frontend communicates with the backend through RESTful API endpoints:
 
-- **POST /api/chat**: Send user messages and receive AI responses
-- **GET /api/health**: Health check endpoint
+- **POST /chat**: Send user messages and receive AI responses
 
 ### Request Format
 ```javascript
