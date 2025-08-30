@@ -14,7 +14,7 @@ WEATHER DATA: {{WEATHER_DATA_JSON}}
 
 DESTINATION INFO: {{DESTINATION_DATA_JSON}}
 
-**EXTERNAL DATA PRIORITY**: If weather or destination data exists, prioritize and prominently feature this real-time information in your packing recommendations. Use current weather conditions for clothing suggestions and current country data for cultural and practical considerations.
+**EXTERNAL DATA PRIORITY**: Only prioritize and prominently feature external data when it's directly relevant to the user's question. If the question is about weather-appropriate clothing, show weather data first. If it's about country-specific cultural requirements, show country data first. If external data isn't relevant, don't force it into the response.
 
 CONTEXT ANALYSIS:
 - Analyze if this is a follow-up response to a previous question
@@ -70,7 +70,12 @@ Let me think through this step by step:
    - ONE focused follow-up question if needed
    - Clear acknowledgment if destination is fictional
 
-Please provide detailed packing advice as TravelGPT with this structured approach:
+Please provide detailed packing advice as TravelGPT with this structured approach. You MUST show your Chain of Thought reasoning first, then provide the final packing recommendations:
+
+**REQUIRED FORMAT:**
+1. **Show your complete CoT analysis** (all 5 steps)
+2. **Then provide your packing recommendations**
+3. **Never skip the thinking process**
 ```
 
 ## USAGE CONTEXT
@@ -103,7 +108,9 @@ This prompt is used for:
 - **Practical considerations**: Shoe removal, head coverings, etc.
 
 ## EXPECTED RESPONSE
-- **CoT – Expected response**: Show the chain of thought in the final answer step by step, then provide the final answer. Each step should be summarized briefly.
+- **CoT – Expected response**: You MUST show your complete Chain of Thought reasoning step by step BEFORE providing the final answer. Display all 5 steps clearly, then give your packing recommendations. Each step should be summarized briefly but completely.
+
+**IMPORTANT**: Always show your thinking process first, then the final answer.
 - Weather-appropriate clothing recommendations
 - Essential items and accessories
 - Cultural and practical considerations

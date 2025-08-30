@@ -19,7 +19,7 @@ CONVERSATION HISTORY:
 
 EXTERNAL DATA: {{EXTERNAL_DATA_JSON}}
 
-**EXTERNAL DATA PRIORITY**: If external data exists (weather, country info), prioritize and prominently feature this real-time information in your itinerary planning. Use current weather conditions to suggest appropriate activities and current country data for practical planning details.
+**EXTERNAL DATA PRIORITY**: Only prioritize and prominently feature external data when it's directly relevant to the user's question. If the question is about weather-appropriate activities, show weather data first. If it's about country-specific planning, show country data first. If external data isn't relevant, don't force it into the response.
 
 CONTEXT ANALYSIS:
 - Analyze if this is a follow-up response to a previous question
@@ -174,7 +174,12 @@ STEP 5: PROVIDE PRACTICAL DETAILS
   * Souvenir and shopping budgets
 - All recommendations must be based on real, existing places
 
-Please provide a detailed, day-by-day itinerary with this structured approach:
+Please provide a detailed, day-by-day itinerary with this structured approach. You MUST show your Chain of Thought reasoning first, then provide the final itinerary:
+
+**REQUIRED FORMAT:**
+1. **Show your complete CoT analysis** (all 5 steps)
+2. **Then provide your detailed itinerary**
+3. **Never skip the thinking process**
 ```
 
 ## USAGE CONTEXT
@@ -206,7 +211,9 @@ This prompt is used for:
 - **Step 5**: Practical implementation details
 
 ## EXPECTED RESPONSE FORMAT
-**CoT – Expected response**: Show the chain of thought in the final answer step by step, then provide the final answer. Each step should be summarized briefly.
+**CoT – Expected response**: You MUST show your complete Chain of Thought reasoning step by step BEFORE providing the final answer. Display all 5 steps clearly, then give your itinerary. Each step should be summarized briefly but completely.
+
+**IMPORTANT**: Always show your thinking process first, then the final answer.
 
 ```
 Itinerary Analysis:

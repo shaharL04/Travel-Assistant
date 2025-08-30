@@ -19,7 +19,7 @@ CONVERSATION HISTORY:
 
 EXTERNAL DATA: {{EXTERNAL_DATA_JSON}}
 
-**EXTERNAL DATA PRIORITY**: If external data exists (weather, country info), prioritize and prominently feature this real-time information in your strategic planning. Use current weather patterns for seasonal planning and current country data for logistics, costs, and practical considerations.
+**EXTERNAL DATA PRIORITY**: Only prioritize and prominently feature external data when it's directly relevant to the user's question. If the question is about weather-dependent planning, show weather data first. If it's about country-specific logistics, show country data first. If external data isn't relevant, don't force it into the response.
 
 CONTEXT ANALYSIS:
 - Analyze if this is a follow-up response to a previous question
@@ -284,7 +284,12 @@ STEP 5: PROVIDE IMPLEMENTATION GUIDANCE
   * Future planning optimization
   * Experience enhancement strategies
 
-Please provide a comprehensive travel planning response with this structured approach:
+Please provide a comprehensive travel planning response with this structured approach. You MUST show your Chain of Thought reasoning first, then provide the final planning framework:
+
+**REQUIRED FORMAT:**
+1. **Show your complete CoT analysis** (all 5 steps)
+2. **Then provide your planning framework**
+3. **Never skip the thinking process**
 ```
 
 ## USAGE CONTEXT
@@ -333,7 +338,9 @@ This prompt is used for:
 - **Strategic coordination** - Big-picture planning with attention to detail
 
 ## EXPECTED RESPONSE FORMAT
-**CoT – Expected response**: Show the chain of thought in the final answer step by step, then provide the final answer. Each step should be summarized briefly.
+**CoT – Expected response**: You MUST show your complete Chain of Thought reasoning step by step BEFORE providing the final answer. Display all 5 steps clearly, then give your planning framework. Each step should be summarized briefly but completely.
+
+**IMPORTANT**: Always show your thinking process first, then the final answer.
 
 ```
 Planning Analysis:
