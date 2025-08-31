@@ -43,11 +43,14 @@ The Travel Assistant is a fullStack application that showcases:
    ```bash
    # In backend directory, create .env file
    cd ../backend
-   cp  .env
    ```
    
    Add your API keys to `.env`:
    ```
+   GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent
+   GEMINI_MODEL=gemini-2.0-flash-exp
+   PORT=3000
+   
    GEMINI_API_KEY=your_gemini_api_key
    WEATHER_API_KEY=your_weather_api_key
    ```
